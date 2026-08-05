@@ -3,19 +3,21 @@ import numpy as np
 from numpy.polynomial import Polynomial
 
 
-
-# defect Hamiltonian needed for exact diagonalization
 def H_defect(gamma,N,q,nd):
 
-    '''
-    defect hamiltonian H
+    """
+    Generate the Hamiltonian for NN graph with a defect at defect site.
+    
+    Args:
+        N (int): Number of nodes (system size).
+        gamma (float): controls the 'hopping strength'.
+        nd (int): Defect site location.
+        q (float): Controls defect strength.
+        
+    Returns:
+        np.ndarray: The resulting Hamiltonian in matrix form.
 
-    gamma = hopping parameter
-    N = number of sites
-    q = defect strength
-    nd = defect site
-
-    '''
+    """
 
     H = np.zeros((N,N))
 
@@ -33,17 +35,21 @@ def H_defect(gamma,N,q,nd):
     return H
 
 
-
-# defing the self consistency condition 1 - qF(E) [Equation 7]
 def SCE(E, gamma, N, q):
 
-    '''
-    self consistency condition: 1 - qF(E) = 0
-    gamma = hopping parameter
-    N = number of sites
-    q = defect strength
+    """
+    Defining the self consistency condition 1 - qF(E) [Equation 7]
+    
+    Args:
+        E (float): energy variable 
+        N (int): Number of nodes (system size).
+        gamma (float): controls the 'hopping strength'.
+        q (float): Controls defect strength.
+        
+    Returns:
+        np.float: The resulting functional value of 1 - qF(E) for a given E.
 
-    '''
+    """
 
     a = 0
     for r in range(N):
@@ -52,14 +58,21 @@ def SCE(E, gamma, N, q):
     return a + 1 
 
 
-#defining the chebyshev polynomials of order n
 def chebyt_poly(n):
+
     """
-    generate Chebyshev polynomial T_n(x) by recurrence relation.
+    Generating Chebyshev polynomial of first kind T_n by recurrence relation.
     T_0(x) = 1
     T_1(x) = x
     T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x)
-    """
+    
+    Args:
+        n (float): polynomial order
+        
+    Returns:
+        np.polynomial.Polynomial: The Chebyshev polynomial T_n(x) represented in the standard power basis.
+
+    """  
 
     T0 = Polynomial([1.0])
 
@@ -77,11 +90,20 @@ def chebyt_poly(n):
     return T1
 
 def chebyu_poly(n):
+
     """
-    generate Chebyshev polynomial U_n(x) by recurrence relation.
+    Generating Chebyshev polynomial of second kind U_n by recurrence relation.
     U_0(x) = 1
     U_1(x) = 2x
     U_{n+1}(x) = 2x U_n(x) - U_{n-1}(x)
+
+
+    Args:
+        n (float): polynomial order
+        
+    Returns:
+         np.polynomial.Polynomial: The Chebyshev polynomial U_n(x) represented in the standard power basis.
+
     """
 
     U0 = Polynomial([1.0])
@@ -99,11 +121,23 @@ def chebyu_poly(n):
 
     return U1
 
+
 # Writing the self consistency equation in terms of Chebyshev polynomial
 def Q_B_poly(N, q, gamma):
+
     """
-    Bright-sector characteristic polynomial (See Appendix A)
+    Writing the factorized bright-sector polynomial corresponding to the self-consistency equation (See Appendix A)
+
+    Args:
+        N (int): Number of nodes (system size).
+        gamma (float): controls the 'hopping strength'.
+        q (float): Controls defect strength.
+
+    Returns:
+        np.polynomial.Polynomial
+
     """
+
     x = Polynomial([0.0, 1.0])
     a = q / (2.0*gamma)
 
@@ -121,9 +155,18 @@ def Q_B_poly(N, q, gamma):
 # getting the eigenvalues from the roots of Chebyshev polynomial equation Q_B_poly
 def bright_roots(N, q, gamma):
 
-    '''
-    Bright eigenvalues
-    '''
+    """
+    Computing bright eigenvalues from the roots of  Chebyshev polynomial equation Q_B_poly
+
+    Args:
+        N (int): Number of nodes (system size).
+        gamma (float): controls the 'hopping strength'.
+        q (float): Controls defect strength.
+
+    Returns:
+        np.float: bright eigenvalues
+
+    """
 
     roots = np.real(Q_B_poly(N, q, gamma).roots())
 
@@ -131,12 +174,23 @@ def bright_roots(N, q, gamma):
 
 
 
-#computing mean squared displacement [Equation 30]
+#computing m
 def MSD_(N, q, l, gamma=1.0, n0=2):
-    '''
-    n0 = initial site
-    l = distance from the initial site to the target site
-    '''
+
+    """
+    Computing Mean squared displacement (MSD) [Equation 30]
+
+    Args:
+        N (int): Number of nodes (system size).
+        gamma (float): controls the 'hopping strength'.
+        q (float): Controls defect strength.
+        l (int): distance of the defect site from the initial site
+        n0 (int): initial site.
+
+    Returns:
+        np.float: MSD
+
+    """
 
     nd = n0 + l
     energies, eigenvectors = np.linalg.eigh(H_defect(gamma,N,q, nd))
@@ -155,6 +209,19 @@ def MSD_(N, q, l, gamma=1.0, n0=2):
 
     return MSD
 
-# computing critical q_* from the theory [Equation 28]
+# computing 
 def q_star(l, gamma=1.0):
-     return 2 * gamma * np.sinh(0.5 * np.arcsinh(1.0 / l) )
+
+    """
+    Computing critical q_* from the theory [Equation 28]
+
+    Args:
+        gamma (float): controls the 'hopping strength'.
+        l (int): distance of the defect site from the initial site
+
+    Returns:
+        np.float: critical q_*
+
+    """
+
+    return 2 * gamma * np.sinh(0.5 * np.arcsinh(1.0 / l) )
