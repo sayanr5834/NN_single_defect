@@ -62,4 +62,4 @@ All data and code are permanently archived on Zenodo:
 [cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
 
 ### Contact
-For questions or issues, please contact **Sayan Roy**: <Sayan Roy> sayan.roy@physik.uni-saarland.de or **Emma King**:<Emma King> emma.king@physik.uni-saarland.de
+For questions or issues, please contact **Sayan Roy**: <Sayan Roy> sayan.roy@physik.uni-saarland.de 
