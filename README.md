@@ -1,6 +1,7 @@
 # Data & Code — *A spectral viewpoint on the single defect tight-binding chain*
 
-[![DOI](https://zenodo.org/badge/1324239995.svg)](https://doi.org/10.5281/zenodo.21823446)
+[![DOI](https://zenodo.org/badge/1324239995.svg)](https://doi.org/10.5281/zenodo.21823447)
+
 
 This repository contains the data and code used to generate the data and figures for:
 
@@ -52,7 +53,7 @@ jupyter notebook plotting.ipynb
 
 ### Data Availability
 
-All data and code are permanently archived on Zenodo: https://doi.org/10.5281/zenodo.21823446
+All data and code are permanently archived on Zenodo: [https://doi.org/10.5281/zenodo.21823447](https://doi.org/10.5281/zenodo.21823447)
 
 ### License
 - Code: MIT License (see `LICENSE`)
