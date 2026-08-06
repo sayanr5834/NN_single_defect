@@ -6,7 +6,7 @@ This repository contains the data and code used to generate the data and figures
 
 > **A spectral viewpoint on the single defect tight-binding chain**  
 > *Sayan Roy*  
-
+[arXiv:2607.29467 ](https://doi.org/10.48550/arXiv.2607.29467)
 ---
 
 ## Repository Contents
