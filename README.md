@@ -1,6 +1,7 @@
 # Data & Code — *A spectral viewpoint on the single defect tight-binding chain*
 
 [![DOI](https://zenodo.org/badge/1324239995.svg)](https://doi.org/10.5281/zenodo.21823446)
+
 This repository contains the data and code used to generate the data and figures for:
 
 > **A spectral viewpoint on the single defect tight-binding chain**  
