@@ -1,4 +1,4 @@
-# Data & Code:*A spectral viewpoint on the single defect tight-binding chain*
+# Data & Code: *A spectral viewpoint on the single defect tight-binding chain*
 
 [![DOI](https://zenodo.org/badge/1324239995.svg)](https://doi.org/10.5281/zenodo.21823447)
 
