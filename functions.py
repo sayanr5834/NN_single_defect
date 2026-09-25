@@ -38,7 +38,7 @@ def H_defect(gamma,N,q,nd):
 def SCE(E, gamma, N, q):
 
     """
-    Defining the self consistency condition 1 - qF(E) [Equation 7]
+    Defining the self consistency condition 1 - qF(E) [Equation 11]
     
     Args:
         E (float): energy variable 
@@ -178,8 +178,7 @@ def bright_roots(N, q, gamma):
 def MSD_(N, q, l, gamma=1.0, n0=2):
 
     """
-    Computing Mean squared displacement (MSD) [Equation 30]
-
+    Computing Mean squared displacement (MSD) [Equation 15]
     Args:
         N (int): Number of nodes (system size).
         gamma (float): controls the 'hopping strength'.
@@ -213,7 +212,7 @@ def MSD_(N, q, l, gamma=1.0, n0=2):
 def q_star(l, gamma=1.0):
 
     """
-    Computing critical q_* from the theory [Equation 28]
+    Computing critical q_* from the theory [Equation 33]
 
     Args:
         gamma (float): controls the 'hopping strength'.
@@ -225,3 +224,57 @@ def q_star(l, gamma=1.0):
     """
 
     return 2 * gamma * np.sinh(0.5 * np.arcsinh(1.0 / l) )
+
+
+
+def MSD_sector_wise(N, q, l, gamma=1.0, n0=2):
+    '''
+    Computing Mean squared displacement (MSD) [Equation 34]
+    Args:
+        N (int): Number of nodes (system size).
+        gamma (float): controls the 'hopping strength'.
+        q (float): Controls defect strength.
+        l (int): distance of the defect site from the initial site
+        n0 (int): initial site.
+
+    Returns:
+        Tuple: (sector wise initial weight list, sector wise second moments list)
+    '''
+
+    nd = (n0 + l) % N
+    energies, eigenvectors = np.linalg.eigh(H_defect(gamma,N,q,nd))
+
+    #spectral weights
+    initial_weights = np.abs(eigenvectors[n0, :])**2
+
+    # Infinite-time-occupation probability for each eigenvectors
+    P_bar = np.abs(eigenvectors)**2 
+
+    sites = np.arange(N)
+    separation = np.abs(sites - n0)
+    distance = np.minimum(separation, N - separation)
+
+    moments = (distance**2)@ P_bar
+
+    #classifying into bright and dark eigenvalues from the overlap with the defect site
+    overlap_arr = np.array([np.abs(eigenvectors[:,i][nd])**2 for i in range(N)])
+    mask_bright = overlap_arr > 1e-16
+    dark_weights = initial_weights[np.invert(mask_bright)].sum()
+    dark_MSD = (initial_weights[np.invert(mask_bright)]*moments[np.invert(mask_bright)]).sum()
+
+    #Bright localized state
+    mask_localized = energies < -2 * gamma
+    localized_weights = initial_weights[mask_localized].sum()
+    localized_MSD = (initial_weights[mask_localized]*moments[mask_localized]).sum()
+
+
+    #bright extended state
+    mask_extended = ~(np.invert(mask_bright) | mask_localized)
+    extended_weights = initial_weights[mask_extended].sum()
+    extended_MSD = (initial_weights[mask_extended]*moments[mask_extended]).sum()
+
+    
+    W = np.array([dark_weights, extended_weights,  localized_weights,])
+    M = np.array([dark_MSD/dark_weights, extended_MSD/extended_weights,  localized_MSD/localized_weights])
+
+    return W, M

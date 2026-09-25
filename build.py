@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from numpy.polynomial import Polynomial
 import pandas as pd
 import functions as core
+from matplotlib.ticker import ScalarFormatter, MultipleLocator
 
 # ----------------------------- Matplotlib style ------------------------------
 import matplotlib as mpl
@@ -142,7 +143,7 @@ def plot_figure1_from_csv(
     dark_state = df.iloc[:, 9]
 
 
-    fig, axes = plt.subplots(1, 2,figsize=(7.5, 3.2), constrained_layout=True)
+    fig, axes = plt.subplots(1, 2,figsize=(6.177, 2.5), constrained_layout=True)
 
     # ============================================================
     ax = axes[0]
@@ -158,20 +159,20 @@ def plot_figure1_from_csv(
 
     ax.set_xlabel(r'$E$')
     ax.set_ylabel(r'$1-qF(E)$')
-    ax.legend(loc=(0.01,0.65), fontsize=10, frameon = True)
+    ax.legend(loc=(0.33,0.65), fontsize=10, frameon = True)
     ax.text(0.01, 0.98, r'(a)', transform=ax.transAxes,va='top', fontsize=14)
 
 
     # ============================================================
     ax = axes[1]
 
-    ax.plot(sites, np.abs(extended_state)**2, marker ='o', label = r'Extended state')
-    ax.plot(sites, np.abs(localized_state)**2, marker ='^', label = r'Localized state')
-    ax.plot(sites, np.abs(dark_state)**2, marker ='x', label = r'Dark state')
+    ax.plot(sites, np.abs(extended_state)**2, marker ='o', label = r'Extended')
+    ax.plot(sites, np.abs(localized_state)**2, marker ='^', label = r'Localized')
+    ax.plot(sites, np.abs(dark_state)**2, marker ='x', label = r'Dark')
 
     ax.set_xlabel(r'Site $n$')
     ax.set_ylabel(r'$|\langle n|\textrm{vec}\rangle|^2$')
-    ax.legend(loc=(0.01,0.65), fontsize=10)
+    ax.legend(loc=(0.55,0.65), fontsize=10)
     ax.text(0.01, 0.98, r'(b)', transform=ax.transAxes, va='top', fontsize=14)
 
     if save:
@@ -199,6 +200,9 @@ def generate_figure2_csv(out_csv, save = True):
 
     q_theory = []
     q_MSD_numerical = []
+    q_MSD_minima_numerical = []
+    MSD_minima_numerical =[]
+
 
     for l in l_values:
         MSD_values = []
@@ -208,18 +212,25 @@ def generate_figure2_csv(out_csv, save = True):
             MSD = core.MSD_(N=N, q=q,l=l, gamma=gamma,n0=n0)
             MSD_values.append(MSD)
     
-
         MSD_values = np.asarray(MSD_values)
 
         q_theory.append(core.q_star(l=l, gamma= gamma))
-        q_MSD_numerical.append(q_values[np.argmin(MSD_values)])
-
+        q_MSD_minima_numerical.append(q_values[np.argmin(MSD_values)])
+        MSD_minima_numerical.append(np.min(MSD_values))
+        
+        q_MSD_numerical.append(MSD_values)
 
     
-    data = np.column_stack([l_values, q_MSD_numerical, q_theory])
+    data = np.column_stack([
+        np.repeat(l_values, len(q_values)),
+        np.tile(q_values, len(l_values)),
+        np.asarray(q_MSD_numerical).ravel(),
+        np.repeat(q_theory, len(q_values)),
+        np.repeat(q_MSD_minima_numerical, len(q_values)),
+        np.repeat(MSD_minima_numerical, len(q_values)),
+    ])
 
-    # Header row 
-    header = "Distance l, q_* (Numerical), q_* (Theory)"
+    header = "Distance l,q,q_MSD_numerics,q_* (Theory),q_*(Numerics),MSD_minimum"
 
 
     # Save CSV
@@ -239,23 +250,298 @@ def plot_figure2_from_csv(
     dpi=600, save = True
 ):
 
-
     df = pd.read_csv(csv_path, comment="#")
-    l_values = df.iloc[:, 0].values  
-    q_MSD_numerical = df.iloc[:, 1].values  
-    q_theory = df.iloc[:, 2].values  
+    l_values = np.unique(df.iloc[:, 0].values)
+    q_values = np.unique(df.iloc[:, 1].values)
+    q_MSD_numerical = df.iloc[:, 2].values.reshape(len(l_values), len(q_values))
+    q_theory = df.iloc[::len(q_values), 3].values
+    q_MSD_minima_numerical = df.iloc[::len(q_values), 4].values
+    MSD_minima_numerical = df.iloc[::len(q_values), 5].values
 
 
-    plt.figure(figsize=(6, 4))
+    fig, axes = plt.subplots(1, 2,figsize=(6.177, 2.13))
 
-    plt.plot(l_values, q_theory, "o-",ms = 14, markerfacecolor = 'None' ,label = r'$q_*$ (Eq. 27)')
+    fig.subplots_adjust(
+        left=0.105,
+        right=0.985,
+        bottom=0.115,
+        top=0.965,
+        wspace=0.3
+    )
 
-    plt.plot(l_values, q_MSD_numerical,"*:",ms = 12, label=r"$q_*^{\rm{MSD}}$")
 
-    plt.xlabel(r"$l$", size = 18)
-    plt.ylabel(r"$q_*$", size = 18)
-    plt.xticks(l_values)
-    plt.legend()
+    # ============================================================
+    ax = axes[0]
+
+    ax.plot(q_values, q_MSD_numerical[0], label = r'$l = 1$',c = 'C2')
+    ax.plot(q_values, q_MSD_numerical[1], label = r'$l = 2$',c = 'C3')
+    ax.plot(q_values, q_MSD_numerical[2], label = r'$l = 3$',c = 'C4')
+    ax.plot(q_values, q_MSD_numerical[3], label = r'$l = 4$',c = 'C5')
+    ax.plot(q_values, q_MSD_numerical[4], label = r'$l = 5$',c = 'C6')
+
+    ax.plot(q_MSD_minima_numerical,MSD_minima_numerical, 'C1*', ms = 12, label=r"$q_*^{\rm{MSD}}$")
+
+    ax.set_yscale('log')
+    ax.set_xlabel(r'$q$')
+    ax.set_ylabel(r'$\overline{\Delta}_2^{(d)}$')
+
+
+    ax.yaxis.set_major_locator(MultipleLocator(100))
+    formatter = ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True)
+    formatter.set_powerlimits((3, 3))
+    formatter.set_useOffset(False)
+
+    ax.yaxis.set_major_formatter(formatter)
+
+    ax.legend(loc = 'upper right', fontsize = 10, frameon = True)
+
+    ax.text(0.1, 0.98, r'(a)', transform=ax.transAxes,va='top', fontsize=14)
+
+
+    # ============================================================
+    ax = axes[1]
+
+
+    ax.plot(l_values, q_theory, "o:",ms = 14, markerfacecolor = 'None' ,label = r'$q_*$ (Eq. 33)')
+    ax.plot(l_values, q_MSD_minima_numerical,"*--",ms = 12, label=r"$q_*^{\rm{MSD}}$")
+
+    ax.set_xlabel(r"$l$", size = 18)
+    ax.set_ylabel(r"$q_*$", size = 18)
+    ax.set_xticks(l_values)
+    ax.legend(fontsize = 10, frameon = True)
+    ax.text(0.1, 0.98, r'(b)', transform=ax.transAxes, va='top', fontsize=14)
+
+    if save:
+        plt.savefig(out_fig, dpi=dpi, bbox_inches="tight")
+        plt.show()
+    else:
+        plt.show()
+
+
+
+# =============================================================================
+# Figure 3 — Generate CSV
+# =============================================================================
+def generate_figure3_csv(out_csv, save = True): 
+
+    N = 200
+    gamma = 1.0
+    n0 = 2 
+    q_arr = np.linspace(0.01, 2.0, 200) * gamma
+    l = 2
+    results_W = np.array([core.MSD_sector_wise(N, q, l, gamma, n0)[0] for q in q_arr])
+    results_M= np.array([core.MSD_sector_wise(N, q, l, gamma, n0)[1] for q in q_arr])
+
+    # dependency on N
+    N_values = np.array([100,150,200,250,300])
+ 
+
+    # distances
+    l_values = np.arange(1, 5)
+
+    #theoretical prediction
+    q_theory = []
+    for l in l_values:
+        q_theory.append(core.q_star(l=l, gamma=gamma))
+
+    q_theory = np.array(q_theory)
+
+    #since the numerics is close, we will look in the interval of q_* to q_* +0.2q_* 
+    q_MSD_minima_numerical = []
+
+    for i,l in enumerate(l_values):
+
+        q_values = np.linspace(q_theory[i], q_theory[i] + 0.2*q_theory[i], 200)
+
+        for N in N_values:
+
+            MSD_values = [core.MSD_(N=N, q=q, l=l, gamma=gamma, n0=n0) for q in q_values]
+
+            q_MSD_minima_numerical.append(q_values[np.argmin(MSD_values)])
+
+    q_MSD = np.array(q_MSD_minima_numerical).reshape(len(l_values), len(N_values))
+
+    relative_error = (100 * (q_MSD - q_theory[:, None])/ q_theory[:, None])
+
+
+    
+    summary = np.column_stack([
+        np.repeat(l_values, len(N_values)),
+        np.tile(N_values, len(l_values)),
+        np.repeat(q_theory, len(N_values)),
+        q_MSD.ravel(),
+        relative_error.ravel(),
+    ])
+
+    data = np.full((len(q_arr), 7 + summary.shape[1]), np.nan)
+    data[:, :7] = np.column_stack([q_arr, results_W, results_M])
+    data[:len(summary), 7:] = summary
+
+    header = (
+        "q,W_dark,W_extended,W_localized,"
+        "M_dark,M_extended,M_localized,"
+        "l,N,q_theory,q_MSD,relative_error_percent"
+    )
+
+
+    # Save CSV
+    if save:
+        np.savetxt(out_csv, data, delimiter=",", header=header, comments="", fmt="%.16g")
+    else:
+        return data
+
+
+
+# =============================================================================
+# Figure 3 — Plot from CSV
+# =============================================================================
+def plot_figure3_from_csv(
+    csv_path,
+    out_fig,
+    dpi=600, save = True
+):
+    df = pd.read_csv(csv_path, comment="#") 
+    q_arr = df["q"].to_numpy()
+    results_W = df.iloc[:, 1:4].to_numpy()
+    results_M = df.iloc[:, 4:7].to_numpy()
+
+    summary = df.iloc[:, 7:].dropna()
+    l_values = np.unique(summary["l"]).astype(int)
+    N_values = np.unique(summary["N"]).astype(int)
+    relative_error = summary["relative_error_percent"].to_numpy().reshape(
+        len(l_values), len(N_values)
+    )
+
+    fig, axes = plt.subplots(2, 2,figsize=(6.177, 2.13*2.5))
+
+    fig.subplots_adjust(
+        left=0.105,
+        right=0.985,
+        bottom=0.115,
+        top=0.965,
+        wspace=0.22,
+        hspace=0.30
+    )
+
+
+    # ============================================================
+    ax = axes[0,0]
+
+    # ax.tick_params(axis='both', labelsize=10, length=3)
+    # ax.xaxis.label.set_fontsize(14)
+    # ax.yaxis.label.set_fontsize(14)
+    # ax.minorticks_off()
+
+    colors = ['tab:blue', 'tab:orange', 'tab:green']
+    labels = [r'Dark', r'Extended', r'Localized']
+    lstyle = ['-','--','-.']
+
+    for j in range(3):
+        ax.plot(q_arr, results_W[:, j],color=colors[j], ls=lstyle[j], label=labels[j])
+    gamma = 1
+    ax.axvline(core.q_star(l=2, gamma= gamma), ls = ':',c = 'k',label = r'$q_*$', alpha = 0.5)
+
+    ax.set_xlabel(r'$q$')
+    ax.set_ylabel(r'$W_{\mathrm{x}}$')
+    ax.set_xticks([0,1,2])
+
+    ax.legend(fontsize = 10)
+
+    ax.text(0.01, 0.85, r'(a)', transform=ax.transAxes,va='top')
+
+
+    # ============================================================
+    ax = axes[0,1]
+    # ax.tick_params(axis='both', labelsize=10, length=3)
+    # ax.xaxis.label.set_fontsize(14)
+    # ax.yaxis.label.set_fontsize(14)
+    # ax.minorticks_off()
+
+
+    for j in range(3):
+        ax.plot(q_arr, results_M[:, j],color=colors[j], ls= lstyle[j], label=labels[j])
+
+    ax.axvline(core.q_star(l=2, gamma= gamma), ls = ':',c = 'k',label = r'$q_*$', alpha = 0.5)
+
+    ax.set_xlabel(r'$q$')
+    ax.set_ylabel(r'$M_{\mathrm{x}}$')
+    ax.set_xticks([0,1,2])
+
+
+    ax.legend(fontsize = 10)
+
+    ax.yaxis.set_major_locator(MultipleLocator(1000))
+    formatter = ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True)
+    formatter.set_powerlimits((3, 3))
+    formatter.set_useOffset(False)
+
+    ax.yaxis.set_major_formatter(formatter)
+
+
+    ax.text(0.06, 0.9, r'(b)', transform=ax.transAxes, va='top')
+
+
+
+    # ============================================================
+    ax = axes[1,0]
+
+    x = 1 / N_values.astype(float)**2
+    x_fit = np.linspace(0, 1.05*x.max(), 200)
+
+    for i, l in enumerate(l_values):
+
+        color = f'C{i}'
+
+        # Main plot
+        ax.plot(N_values, relative_error[i],'o:',color=color, label=rf'$l={l}$')
+
+
+    ax.set_xlabel(r'$N$')
+    ax.set_ylabel(r'Error $(\%)$')
+
+    ax.legend(frameon=False, fontsize = 10)
+
+
+
+    ax.text(0.12, 0.94, r'(c)', transform=ax.transAxes, va='top', zorder = 10)
+
+    # ============================================================
+    ax = axes[1,1]
+
+
+    for i, l in enumerate(l_values):
+
+        color = f'C{i}'
+
+
+        # data
+        ax.plot(x, relative_error[i],'o', color=color, label=rf'$l={l}$')
+
+        # Linear fit with a free intercept
+        slope, intercept = np.polyfit(x,relative_error[i], 1)
+
+        ax.plot(x_fit,slope*x_fit + intercept,'--',color=color, alpha=0.7 )
+
+
+    ax.legend(frameon=False, fontsize = 10, loc = (0.2,0.55))
+
+    # formatting
+    # ax.axhline(0, color='k', ls=':', alpha=0.5)
+
+    ax.set_xlim(0, 1.05*x.max())
+    ax.set_xlabel(r'$1/N^2$')
+    # ax.set_ylabel(r'Error $[\%]$')
+
+    ax.ticklabel_format( axis='x',  style='sci', scilimits=(0, 0))
+    # ax.xaxis.get_offset_text().set_fontsize(10)
+
+    ax.text(0.05, 0.94, r'(d)', transform=ax.transAxes, va='top', zorder = 10)
+
+
+
+
 
     if save:
         plt.savefig(out_fig, dpi=dpi, bbox_inches="tight")
