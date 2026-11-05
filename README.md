@@ -10,7 +10,7 @@ This repository contains the data and code used to generate the data and figures
 >
 > Paper Link: [J. Stat. Mech. (2026) 113101](https://doi.org/10.1088/1742-5468/aeb7d9)
 > 
-> Arxiv Link:[arXiv:2607.29467 ](https://doi.org/10.48550/arXiv.2607.29467)
+> Arxiv Link: [arXiv:2607.29467 ](https://doi.org/10.48550/arXiv.2607.29467)
 ---
 
 ## Repository Contents
